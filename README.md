@@ -15,6 +15,10 @@ $ . venv/bin/activate
 (venv) $ gunicorn --workers=6 pi7:server
 ```
 
+Alternatively, simply deploy it on Heroku...
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 ## Trigger a Request
 
 Visit [http://localhost:8000](http://localhost:8000)...

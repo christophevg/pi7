@@ -1,0 +1,9 @@
+{
+  "name": "pi7",
+  "description": "A proof-of-concept.",
+  "website": "https://github.com/christophevg/pi7",
+  "addons" : [
+    "mongolab",
+  ],
+  "success_url": "/"
+}
