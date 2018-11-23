@@ -6,7 +6,8 @@ import json
 from flask         import request, render_template
 from flask_restful import Resource
 
-from pi7 import server, api
+from pi7             import server, api
+from pi7.integration import url
 
 @server.route("/")
 def render_home():
@@ -22,10 +23,7 @@ class WebSalesOrderRequest(Resource):
     }
     logging.info("     assigned businessProcessId {0}".format(event["processId"]))
     logging.info("     publishing sales order request event")
-    requests.post(
-      request.host_url + "/api/integration/request/salesorder",
-      json=event
-    )
+    requests.post(url("/api/integration/request/salesorder"), json=event)
 
 api.add_resource(
   WebSalesOrderRequest,

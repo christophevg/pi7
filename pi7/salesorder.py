@@ -5,34 +5,26 @@ import uuid
 from flask         import request
 from flask_restful import Resource
 
-from pi7           import server, api
-from pi7.store     import db
+from pi7             import server, api
+from pi7.store       import db
+from pi7.integration import url
 
 class SalesOrder(object):
-  def __init__(self, origin=None, processId=None):
-    self.guid         = str(uuid.uuid4())
-    self.origin       = origin
-    self.processId    = processId
-    self.salesorder   = { "reservations": [] }
+  def __init__(self):
+    self.guid       = str(uuid.uuid4())
+    self.processId  = None
+    self.salesorder = { "reservations": [] }
+
+  def in_context_of(self, processId):
+    self.processId = processId
     self.load()
+    return self
 
   def load(self):
     data = db.salesorder.find_one({ "processId" : self.processId })
     if data:
       self.guid = data["_id"]
       self.make(data["salesorder"], persist=False)
-
-  def persist(self):
-    db.salesorder.update_one(
-      { "_id": self.guid },
-      { "$set" : {
-        "processId"    : self.processId,
-        "origin"       : self.origin,
-        "salesorder"   : self.salesorder
-      }}, upsert=True)
-    logging.info("sales order: persisted {0}".format(self.guid))
-    self.check()
-    return self
 
   def make(self, salesorder, persist=True):
     reservations = []
@@ -45,6 +37,17 @@ class SalesOrder(object):
     salesorder["reservations"] = reservations
     self.salesorder = salesorder
     if persist: self.persist()
+    return self
+
+  def persist(self):
+    db.salesorder.update_one(
+      { "_id": self.guid },
+      { "$set" : {
+        "processId"    : self.processId,
+        "salesorder"   : self.salesorder
+      }}, upsert=True)
+    logging.info("sales order: persisted {0}".format(self.guid))
+    self.check()
     return self
 
   def confirm(self, reservation):
@@ -64,7 +67,7 @@ class SalesOrder(object):
     if all_confirmed:
       logging.info("sales order: all reservations are confirmed")
       requests.post(
-        self.origin + "/api/integration/confirm/salesorder",
+        url("/api/integration/confirm/salesorder"),
         json={
           "processId"  : self.processId,
           "salesorder" : self.salesorder
@@ -76,8 +79,7 @@ class SalesOrderRequest(Resource):
   def post(self):
     event = request.get_json()
     logging.info("sales order: received sales order request")
-    order = SalesOrder(request.host_url, processId=event["processId"])
-    order.make(event["salesorder"])
+    SalesOrder().in_context_of(event["processId"]).make(event["salesorder"])
 
 api.add_resource(
   SalesOrderRequest,
@@ -88,8 +90,7 @@ class SalesOrderReservationConfirmation(Resource):
   def post(self):
     event = request.get_json()
     logging.info("sales order: received reservation confirmation")
-    order = SalesOrder(request.host_url, processId=event["processId"])
-    order.confirm(event["reservation"])
+    SalesOrder().in_context_of(event["processId"]).confirm(event["reservation"])
 
 api.add_resource(
   SalesOrderReservationConfirmation,
