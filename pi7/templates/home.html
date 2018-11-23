@@ -1,0 +1,28 @@
+<html>
+<body>
+
+  <h1>PI 7</h1>
+  <textarea id="request" rows="8" cols="50" style="font-size:16pt">
+{
+  "customer" : "christophe",
+  "reservations" : [
+    { "id": 1, "reserved": "some hotel" },
+    { "id": 2, "reserved": "a plane" }
+  ] 
+}    
+  </textarea><br>
+  <input type="submit" onclick="submit();">
+
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script>
+    function submit() {
+      $.ajax({
+        type: "POST",
+        data :JSON.stringify($("#request").val()),
+        url: "/api/web/salesorder/request",
+        contentType: "application/json"
+      });
+    }
+    </script>
+</body>
+</html>
