@@ -13,7 +13,7 @@ class SalesOrder(object):
     self.guid         = str(uuid.uuid4())
     self.origin       = origin
     self.processId    = processId
-    self.salesorder   = { "reservations": [], "made": False }
+    self.salesorder   = { "reservations": [] }
     self.load()
 
   def load(self):
@@ -39,17 +39,16 @@ class SalesOrder(object):
     for reservation in salesorder["reservations"]:
       for existing in self.salesorder["reservations"]:
         if reservation["id"] == existing["id"]:
-          reservation = existing["id"]
+          reservation = existing
       if not "status" in reservation: reservation["status"] = "unconfirmed"
       reservations.append(reservation)
     salesorder["reservations"] = reservations
     self.salesorder = salesorder
-    self.salesorder["made"] = True
     if persist: self.persist()
     return self
 
   def confirm(self, reservation):
-    if self.salesorder["made"]:
+    if "customer" in self.salesorder:
       for i in range(len(self.salesorder["reservations"])):
         if reservation["id"] == self.salesorder["reservations"][i]["id"]:
           self.salesorder["reservations"][i] = reservation
@@ -58,7 +57,7 @@ class SalesOrder(object):
     self.persist()
 
   def check(self):
-    if not self.salesorder["made"]: return
+    if not "customer" in self.salesorder: return
     all_confirmed = True
     for reservation in self.salesorder["reservations"]:
       all_confirmed = all_confirmed and ( reservation["status"] == "confirmed")
