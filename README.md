@@ -4,7 +4,7 @@
 
 ## Install && Run
 
-For educational simplicity, all components are hosted within the same application. All communication is done synchronously, again for educational simplicity. So 6 workers are required.
+For educational simplicity, all components are hosted within the same application. When run locally, you need to instantiate two workers, to allow the app to talk to itself.
 
 ```bash
 $ git clone https://github.com/christophevg/pi7
@@ -12,7 +12,7 @@ $ cd pi7
 $ virtualenv venv
 $ . venv/bin/activate
 (venv) $ pip install -r requirements.txt
-(venv) $ gunicorn --workers=6 pi7:server
+(venv) $ gunicorn --workers=2 pi7:server
 ```
 
 Alternatively, simply ...
@@ -36,32 +36,32 @@ Visit [http://localhost:8000](http://localhost:8000)...
 The logging shows the workflow in action, from the web application receiving the browser request, through the integration layer, dispatching the request to consumers, up to the final confirmation.
 
 ```
-[2018-11-23 23:06:43 +0100] [99835] [INFO] web: received sales order request
-[2018-11-23 23:06:43 +0100] [99835] [INFO]      assigned businessProcessId 2c9d47b8-e33f-488a-85f1-38f1b327f0b8
-[2018-11-23 23:06:43 +0100] [99835] [INFO]      publishing sales order request event
-[2018-11-23 23:06:43 +0100] [99833] [INFO] integration: received sales order request
-[2018-11-23 23:06:43 +0100] [99833] [INFO]              delivering to sales order and reservation components
-[2018-11-23 23:06:43 +0100] [99834] [INFO] sales order: received sales order request
-[2018-11-23 23:06:43 +0100] [99834] [INFO] sales order: persisted 9d250d92-5eab-451e-930b-ddf4a7bbfd11
-[2018-11-23 23:06:43 +0100] [99832] [INFO] reservation: received sales order request
-[2018-11-23 23:06:43 +0100] [99832] [INFO] reservation: making reservation for some hotel
-[2018-11-23 23:06:44 +0100] [99832] [INFO] reservation: persisted 439396fa-43f1-41f3-8196-c66abe08a892
-[2018-11-23 23:06:44 +0100] [99832] [INFO] reservation: confirming
-[2018-11-23 23:06:44 +0100] [99832] [INFO] reservation: persisted 439396fa-43f1-41f3-8196-c66abe08a892
-[2018-11-23 23:06:44 +0100] [99834] [INFO] integration: received reservation confirmation
-[2018-11-23 23:06:44 +0100] [99834] [INFO]              delivering to sales order component
-[2018-11-23 23:06:44 +0100] [99836] [INFO] sales order: received reservation confirmation
-[2018-11-23 23:06:44 +0100] [99836] [INFO] sales order: persisted 9d250d92-5eab-451e-930b-ddf4a7bbfd11
-[2018-11-23 23:06:44 +0100] [99832] [INFO] reservation: making reservation for a plane
-[2018-11-23 23:06:45 +0100] [99832] [INFO] reservation: persisted a59629a0-2c5f-43b6-b10d-b1d70fae043d
-[2018-11-23 23:06:45 +0100] [99832] [INFO] reservation: confirming
-[2018-11-23 23:06:45 +0100] [99832] [INFO] reservation: persisted a59629a0-2c5f-43b6-b10d-b1d70fae043d
-[2018-11-23 23:06:45 +0100] [99836] [INFO] integration: received reservation confirmation
-[2018-11-23 23:06:45 +0100] [99836] [INFO]              delivering to sales order component
-[2018-11-23 23:06:45 +0100] [99834] [INFO] sales order: received reservation confirmation
-[2018-11-23 23:06:45 +0100] [99834] [INFO] sales order: persisted 9d250d92-5eab-451e-930b-ddf4a7bbfd11
-[2018-11-23 23:06:45 +0100] [99834] [INFO] sales order: all reservations are confirmed
-[2018-11-23 23:06:45 +0100] [99831] [INFO] integration: received sales order confirmation
+[2018-11-23 23:53:09 +0100] [1859] [INFO] web: received sales order request
+[2018-11-23 23:53:09 +0100] [1859] [INFO]      assigned businessProcessId f26c2895-16d5-4fb4-8b5f-44df59d36508
+[2018-11-23 23:53:09 +0100] [1859] [INFO]      publishing sales order request event
+[2018-11-23 23:53:09 +0100] [1858] [INFO] integration: received sales order request
+[2018-11-23 23:53:09 +0100] [1858] [INFO]              delivering to sales order and reservation components
+[2018-11-23 23:53:09 +0100] [1859] [INFO] sales order: received sales order request
+[2018-11-23 23:53:09 +0100] [1859] [INFO] sales order: persisted fee44eef-3580-4d63-9848-3e2226d274b1
+[2018-11-23 23:53:09 +0100] [1859] [INFO] reservation: received sales order request
+[2018-11-23 23:53:09 +0100] [1859] [INFO] reservation: making reservation for some hotel
+[2018-11-23 23:53:10 +0100] [1859] [INFO] reservation: persisted 47235a73-8371-4b80-b35e-c1222bf79ac8
+[2018-11-23 23:53:10 +0100] [1859] [INFO] reservation: confirming
+[2018-11-23 23:53:10 +0100] [1859] [INFO] reservation: persisted 47235a73-8371-4b80-b35e-c1222bf79ac8
+[2018-11-23 23:53:10 +0100] [1858] [INFO] integration: received reservation confirmation
+[2018-11-23 23:53:10 +0100] [1858] [INFO]              delivering to sales order component
+[2018-11-23 23:53:10 +0100] [1859] [INFO] reservation: making reservation for a plane
+[2018-11-23 23:53:11 +0100] [1859] [INFO] reservation: persisted 42fdd97c-474e-4a8f-a78d-3e0cf58cda02
+[2018-11-23 23:53:11 +0100] [1859] [INFO] reservation: confirming
+[2018-11-23 23:53:11 +0100] [1859] [INFO] reservation: persisted 42fdd97c-474e-4a8f-a78d-3e0cf58cda02
+[2018-11-23 23:53:11 +0100] [1858] [INFO] integration: received reservation confirmation
+[2018-11-23 23:53:11 +0100] [1858] [INFO]              delivering to sales order component
+[2018-11-23 23:53:11 +0100] [1859] [INFO] sales order: received reservation confirmation
+[2018-11-23 23:53:11 +0100] [1859] [INFO] sales order: persisted fee44eef-3580-4d63-9848-3e2226d274b1
+[2018-11-23 23:53:11 +0100] [1859] [INFO] sales order: received reservation confirmation
+[2018-11-23 23:53:11 +0100] [1859] [INFO] sales order: persisted fee44eef-3580-4d63-9848-3e2226d274b1
+[2018-11-23 23:53:11 +0100] [1859] [INFO] sales order: all reservations are confirmed
+[2018-11-23 23:53:11 +0100] [1858] [INFO] integration: received sales order confirmation
 ```
 
 ## Meanwhile in the Store
@@ -71,20 +71,20 @@ $ mongo
 > use pi7
 > db.salesorder.find().pretty()
 {
-	"_id" : "9d250d92-5eab-451e-930b-ddf4a7bbfd11",
-	"processId" : "2c9d47b8-e33f-488a-85f1-38f1b327f0b8",
+	"_id" : "fee44eef-3580-4d63-9848-3e2226d274b1",
+	"processId" : "f26c2895-16d5-4fb4-8b5f-44df59d36508",
 	"salesorder" : {
 		"customer" : "christophe",
 		"reservations" : [
 			{
 				"status" : "confirmed",
-				"_id" : "439396fa-43f1-41f3-8196-c66abe08a892",
+				"_id" : "47235a73-8371-4b80-b35e-c1222bf79ac8",
 				"reserved" : "some hotel",
 				"id" : 1
 			},
 			{
 				"status" : "confirmed",
-				"_id" : "a59629a0-2c5f-43b6-b10d-b1d70fae043d",
+				"_id" : "42fdd97c-474e-4a8f-a78d-3e0cf58cda02",
 				"reserved" : "a plane",
 				"id" : 2
 			}
@@ -93,8 +93,8 @@ $ mongo
 }
 > db.reservation.find().pretty()
 {
-	"_id" : "439396fa-43f1-41f3-8196-c66abe08a892",
-	"processId" : "2c9d47b8-e33f-488a-85f1-38f1b327f0b8",
+	"_id" : "47235a73-8371-4b80-b35e-c1222bf79ac8",
+	"processId" : "f26c2895-16d5-4fb4-8b5f-44df59d36508",
 	"reservation" : {
 		"status" : "confirmed",
 		"reserved" : "some hotel",
@@ -102,8 +102,8 @@ $ mongo
 	}
 }
 {
-	"_id" : "a59629a0-2c5f-43b6-b10d-b1d70fae043d",
-	"processId" : "2c9d47b8-e33f-488a-85f1-38f1b327f0b8",
+	"_id" : "42fdd97c-474e-4a8f-a78d-3e0cf58cda02",
+	"processId" : "f26c2895-16d5-4fb4-8b5f-44df59d36508",
 	"reservation" : {
 		"status" : "confirmed",
 		"reserved" : "a plane",
