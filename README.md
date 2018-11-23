@@ -15,9 +15,11 @@ $ . venv/bin/activate
 (venv) $ gunicorn --workers=6 pi7:server
 ```
 
-Alternatively, simply deploy it on Heroku...
+Alternatively, simply ...
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+**IMPORTANT**: In case you do so, create an environment variable called `INTEGRATION_URL`, containing the URL of you Heroku deploy, e.g. `https://pi7-demo.herokuapp.com`, if you called your app `pi7-demo`.
 
 ## Trigger a Request
 
