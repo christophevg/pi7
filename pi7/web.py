@@ -21,7 +21,7 @@ class WebSalesOrderRequest(Resource):
       "processId"  : str(uuid.uuid4()),
       "salesorder" : salesorder
     }
-    logging.info("     assigned businessProcessId {0}".format(event["processId"]))
+    logging.info("     assigned processId {0}".format(event["processId"]))
     logging.info("     publishing sales order request event")
     requests.post(url("/api/integration/request/salesorder"), json=event)
 

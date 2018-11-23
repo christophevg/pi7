@@ -37,7 +37,7 @@ The logging shows the workflow in action, from the web application receiving the
 
 ```
 [2018-11-23 23:53:09 +0100] [1859] [INFO] web: received sales order request
-[2018-11-23 23:53:09 +0100] [1859] [INFO]      assigned businessProcessId f26c2895-16d5-4fb4-8b5f-44df59d36508
+[2018-11-23 23:53:09 +0100] [1859] [INFO]      assigned processId f26c2895-16d5-4fb4-8b5f-44df59d36508
 [2018-11-23 23:53:09 +0100] [1859] [INFO]      publishing sales order request event
 [2018-11-23 23:53:09 +0100] [1858] [INFO] integration: received sales order request
 [2018-11-23 23:53:09 +0100] [1858] [INFO]              delivering to sales order and reservation components
