@@ -29,3 +29,7 @@ api.add_resource(
   WebSalesOrderRequest,
   "/api/web/salesorder/request"
 )
+
+@server.route("/store")
+def render_store():
+  return render_template("store.html")

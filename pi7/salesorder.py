@@ -73,6 +73,17 @@ class SalesOrder(object):
           "salesorder" : self.salesorder
         })
 
+# REST API
+
+class SalesOrderStore(Resource):
+  def get(self):
+    return [ x for x in db.salesorder.find() ]
+
+api.add_resource(
+  SalesOrderStore,
+  "/api/store/salesorder"
+)
+
 # event consumers
 
 class SalesOrderRequest(Resource):
