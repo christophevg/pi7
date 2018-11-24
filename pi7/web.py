@@ -30,6 +30,6 @@ api.add_resource(
   "/api/web/salesorder/request"
 )
 
-@server.route("/store")
+@server.route("/backend")
 def render_store():
-  return render_template("store.html")
+  return render_template("backend.html")

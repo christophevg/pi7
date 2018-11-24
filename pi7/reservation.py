@@ -11,8 +11,8 @@ from pi7.store       import db
 from pi7.integration import url
 
 class Reservation(object):
-  def __init__(self):
-    self.guid       = str(uuid.uuid4())
+  def __init__(self, guid=None):
+    self.guid       = guid or str(uuid.uuid4())
     self.processId   = None
     self.reservation = None
 
@@ -27,9 +27,6 @@ class Reservation(object):
     self.reservation = reservation
     self.update_historic({"status" : "unconfirmed"})
 
-    time.sleep(1) # simulate some work that must be done
-    self.confirm()
-  
   def persist(self):
     db.reservation.update_one(
       { "_id": self.guid },
@@ -40,8 +37,15 @@ class Reservation(object):
     logging.info("reservation: persisted {0}".format(self.guid))
     return self
 
+  def load(self):
+    data = db.reservation.find_one({ "_id" : self.guid })
+    if data:
+      self.processId   = data["processId"]
+      self.reservation = data["reservation"]
+    return self
+
   def confirm(self):
-    logging.info("reservation: confirming")
+    logging.info("reservation: confirming {0}".format(guid))
     self.update_historic({ "status" : "confirmed" })
     reservation = self.reservation
     reservation["_id"] = self.guid
@@ -61,6 +65,20 @@ class Reservation(object):
     update["time"] = int(time.time())
     self.reservation["history"].append(update)
     self.persist()
+
+# REST API
+
+class ReservationStore(Resource):
+  def get(self, status):
+    return [ x for x in db.reservation.find({"reservation.status": status}) ]
+  def post(self, status):
+    guid = request.get_json()
+    Reservation(guid).load().confirm()
+
+api.add_resource(
+  ReservationStore,
+  "/api/store/reservation/<string:status>"
+)
 
 # event consumer
 
