@@ -24,9 +24,10 @@ class Reservation(object):
     logging.info(
       "reservation: making reservation for {0}".format(reservation["reserved"])
     )
-    time.sleep(1) # simulate some work that must be done
     self.reservation = reservation
-    self.persist()
+    self.update_historic({"status" : "unconfirmed"})
+
+    time.sleep(1) # simulate some work that must be done
     self.confirm()
   
   def persist(self):
@@ -38,19 +39,28 @@ class Reservation(object):
       }}, upsert=True)
     logging.info("reservation: persisted {0}".format(self.guid))
     return self
-  
+
   def confirm(self):
     logging.info("reservation: confirming")
-    self.reservation["status"] = "confirmed"
-    self.persist()
+    self.update_historic({ "status" : "confirmed" })
     reservation = self.reservation
     reservation["_id"] = self.guid
+    reservation.pop("history")
     requests.post(
       url("/api/integration/confirm/reservation"),
       json={
         "processId"   : self.processId,
         "reservation" : reservation
       })
+
+  def update_historic(self, update):
+    if not "history" in self.reservation:
+      self.reservation["history"] = []
+    for key in update:
+      self.reservation[key] = update[key]
+    update["time"] = int(time.time())
+    self.reservation["history"].append(update)
+    self.persist()
 
 # event consumer
 
