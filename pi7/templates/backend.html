@@ -23,7 +23,7 @@
         $("#reservations").empty();
         reservations.forEach(function(reservation){
           $("#reservations").append(
-            "<li>" + reservation["reservation"]["reserved"] +
+            "<li>" + reservation["object"]["reserved"] +
             " <button onclick=\"confirm('" + reservation["_id"] + "');\">confirm</button><br>"
           )
         });

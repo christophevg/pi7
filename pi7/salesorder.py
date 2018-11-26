@@ -1,83 +1,59 @@
 import logging
 import requests
-import uuid
 
 from flask         import request
 from flask_restful import Resource
 
 from pi7             import server, api
-from pi7.store       import db
+from pi7.store       import Storable
 from pi7.integration import url
 
-class SalesOrder(object):
-  def __init__(self):
-    self.guid       = str(uuid.uuid4())
-    self.processId  = None
-    self.salesorder = { "reservations": [] }
-
-  def in_context_of(self, processId):
-    self.processId = processId
-    self.load()
-    return self
-
-  def load(self):
-    data = db.salesorder.find_one({ "processId" : self.processId })
-    if data:
-      self.guid = data["_id"]
-      self.make(data["salesorder"], persist=False)
-
-  def make(self, salesorder, persist=True):
+class SalesOrder(Storable):
+  def unmarshall(self, salesorder):
+    # use the provided salesorder information, but don't override information
+    # about reservations, only use placeholders for not yet received
+    # reservation information
     reservations = []
     for reservation in salesorder["reservations"]:
-      for existing in self.salesorder["reservations"]:
-        if reservation["id"] == existing["id"]:
-          reservation = existing
+      if "reservations" in self:
+        for existing in self["reservations"]:
+          if reservation["id"] == existing["id"]:
+            reservation = existing
       if not "status" in reservation: reservation["status"] = "unconfirmed"
       reservations.append(reservation)
     salesorder["reservations"] = reservations
-    self.salesorder = salesorder
-    if persist: self.persist()
-    return self
+    return salesorder
 
-  def persist(self):
-    db.salesorder.update_one(
-      { "_id": self.guid },
-      { "$set" : {
-        "processId"    : self.processId,
-        "salesorder"   : self.salesorder
-      }}, upsert=True)
-    logging.info("sales order: persisted {0}".format(self.guid))
-    self.check()
-    return self
+  def when_persisted(self):
+    # check if sales order is complete...
+    # and all reservations are confirmed...
+    # if so, raise an event
+    if not "customer" in self: return
+    if [r for r in self["reservations"] if r["status"] == "unconfirmed"]: return
+    self.log("all reservations are confirmed")
+    requests.post(
+      url("/api/integration/confirm/salesorder"),
+      json={
+        "processId"  : self.processId,
+        "salesorder" : self.marshall()
+      })
 
   def confirm(self, reservation):
-    if "customer" in self.salesorder:
-      for i in range(len(self.salesorder["reservations"])):
-        if reservation["id"] == self.salesorder["reservations"][i]["id"]:
-          self.salesorder["reservations"][i] = reservation
+    # handle the confirmation of a reservation, replacing a placeholder or
+    # simply adding it to the list
+    if "customer" in self:
+      for i, placeholder in enumerate(self["reservations"]):
+        if placeholder["id"] == reservation["id"]:
+          self["reservations"][i] = reservation
     else:
-      self.salesorder["reservations"].append(reservation)
+      self["reservations"].append(reservation)
     self.persist()
-
-  def check(self):
-    if not "customer" in self.salesorder: return
-    all_confirmed = True
-    for reservation in self.salesorder["reservations"]:
-      all_confirmed = all_confirmed and ( reservation["status"] == "confirmed")
-    if all_confirmed:
-      logging.info("sales order: all reservations are confirmed")
-      requests.post(
-        url("/api/integration/confirm/salesorder"),
-        json={
-          "processId"  : self.processId,
-          "salesorder" : self.salesorder
-        })
 
 # REST API
 
 class SalesOrderStore(Resource):
   def get(self):
-    return [ x for x in db.salesorder.find() ]
+    return [ x for x in SalesOrder.collection().find() ]
 
 api.add_resource(
   SalesOrderStore,
