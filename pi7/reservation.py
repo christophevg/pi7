@@ -19,14 +19,11 @@ class Reservation(Storable):
   def confirm(self):
     self.log("confirming {0}".format(self.guid))
     self.update_historic({ "status" : "confirmed" })
-    reservation = self.marshall()
-    reservation["_id"] = self.guid
-    reservation.pop("history")
     requests.post(
       url("/api/integration/confirm/reservation"),
       json={
         "processId"   : self.processId,
-        "reservation" : reservation
+        "reservation" : self.marshall(external=True)
       })
 
 # REST API

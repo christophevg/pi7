@@ -35,7 +35,7 @@ class SalesOrder(Storable):
       url("/api/integration/confirm/salesorder"),
       json={
         "processId"  : self.processId,
-        "salesorder" : self.marshall()
+        "salesorder" : self.marshall(external=True)
       })
 
   def confirm(self, reservation):

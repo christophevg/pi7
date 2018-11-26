@@ -81,8 +81,12 @@ class Storable(object):
   def unmarshall(self, data):
     return data
 
-  def marshall(self):
-    return self.object
+  def marshall(self, external=False):
+    data = self.object
+    if external:
+      data["_id"] = self.guid
+      if "history" in data: data.pop("history")
+    return data
 
   def when_persisted(self):
     pass
