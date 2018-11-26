@@ -1,12 +1,11 @@
 import logging
-import requests
 
-from flask         import request
-from flask_restful import Resource
+from flask           import request
+from flask_restful   import Resource
 
-from pi7             import server, api
+from pi7             import api
 from pi7.store       import Storable
-from pi7.integration import url
+from pi7.integration import publish
 
 class SalesOrder(Storable):
   def unmarshall(self, salesorder):
@@ -31,12 +30,7 @@ class SalesOrder(Storable):
     if not "customer" in self: return
     if [r for r in self["reservations"] if r["status"] == "unconfirmed"]: return
     self.log("all reservations are confirmed")
-    requests.post(
-      url("/api/integration/confirm/salesorder"),
-      json={
-        "processId"  : self.processId,
-        "salesorder" : self.marshall(external=True)
-      })
+    publish("/api/integration/confirm/salesorder", self)
 
   def confirm(self, reservation):
     # handle the confirmation of a reservation, replacing a placeholder or

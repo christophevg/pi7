@@ -2,12 +2,13 @@ import os
 import logging
 import requests
 import time
-from threading import Thread
+
+from threading     import Thread
 
 from flask         import request
 from flask_restful import Resource
 
-from pi7 import server, api
+from pi7           import server, api
 
 HOST = os.environ.get("INTEGRATION_URL", "http://localhost:8000")
 
@@ -32,6 +33,14 @@ def process():
 t = Thread(target=process)
 t.setDaemon(True)
 t.start()
+
+def publish(event, obj):
+  requests.post( url(event),
+    json={
+      "processId"   : obj.processId,
+      "reservation" : obj.marshall(external=True)
+    }
+  )
 
 # integration platform event processors
 

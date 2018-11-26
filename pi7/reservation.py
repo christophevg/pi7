@@ -1,14 +1,11 @@
 import logging
-import requests
-import time
-import uuid
 
-from flask         import request
-from flask_restful import Resource
+from flask           import request
+from flask_restful   import Resource
 
-from pi7             import server, api
+from pi7             import api
 from pi7.store       import Storable, historic
-from pi7.integration import url
+from pi7.integration import publish
 
 @historic
 class Reservation(Storable):
@@ -19,12 +16,7 @@ class Reservation(Storable):
   def confirm(self):
     self.log("confirming {0}".format(self.guid))
     self.update_historic({ "status" : "confirmed" })
-    requests.post(
-      url("/api/integration/confirm/reservation"),
-      json={
-        "processId"   : self.processId,
-        "reservation" : self.marshall(external=True)
-      })
+    publish("/api/integration/confirm/reservation", self)
 
 # REST API
 
