@@ -45,7 +45,7 @@ class Reservation(object):
     return self
 
   def confirm(self):
-    logging.info("reservation: confirming {0}".format(guid))
+    logging.info("reservation: confirming {0}".format(self.guid))
     self.update_historic({ "status" : "confirmed" })
     reservation = self.reservation
     reservation["_id"] = self.guid
