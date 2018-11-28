@@ -3,9 +3,9 @@ import logging
 from flask           import request
 from flask_restful   import Resource
 
-from pi7             import api
-from pi7.store       import Storable, historic
-from pi7.integration import publish
+from pi7       import api
+from pi7.store import Storable, historic
+from pi7.mq    import broker, subscribe, publish
 
 @historic
 class Reservation(Storable):
@@ -16,7 +16,7 @@ class Reservation(Storable):
   def confirm(self):
     self.log("confirming {0}".format(self.guid))
     self.update_historic({ "status" : "confirmed" })
-    publish("/api/integration/confirm/reservation", self)
+    publish("reservation/confirm", self)
 
 # REST API
 
@@ -34,14 +34,9 @@ api.add_resource(
 
 # event consumer
 
-class ReservationSalesOrderRequest(Resource):
-  def post(self):
-    event = request.get_json()
-    logging.info("reservation: received sales order request")
-    for reservation in event["salesorder"]["reservations"]:
-      Reservation().in_context_of(event["processId"], load=False).make(reservation)
+def handle_sales_order_request(event):
+  logging.info("reservation: received sales order request")
+  for reservation in event["salesorder"]["reservations"]:
+    Reservation().in_context_of(event["processId"], load=False).make(reservation)
 
-api.add_resource(
-  ReservationSalesOrderRequest,
-  "/api/reservation/request/salesorder"
-)
+subscribe("salesorder/request", handle_sales_order_request)

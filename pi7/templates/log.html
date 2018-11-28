@@ -1,0 +1,72 @@
+<html>
+<head>
+  <style>
+    /* basic syntax highlighting for json */
+    pre {
+      padding: 5px;
+      margin: 5px;
+    }
+
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: blue; }
+    .null { color: magenta; }
+    .key { color: red; }    
+
+    #log {
+      width: 100%;
+    }
+    .log {
+      width: 95%;
+      border: 1px solid black;
+      margin: 5px;
+      padding: 5px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>PI 7 - Log</h1>
+
+  <div id="log"></div>
+
+  <script src="/static/vendor/jquery.min.js"></script>
+  <script src="/static/vendor/paho-mqtt.js"></script>
+
+  <script src="/static/mq.js"></script>
+  <script>
+    function syntaxHighlight(json) {
+      var json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var html = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'key';
+          } else {
+            cls = 'string';
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'boolean';
+        } else if (/null/.test(match)) {
+          cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+      });
+      return "<pre>" + html + "</pre>";
+    }
+
+    window.onload = function() {
+      MQ.subscribe(function(topic, payload) {
+        $("#log").prepend(
+          "<div class=\"log\">" +
+            (new Date()).toString() + " : " + topic.join(" / ") +
+            syntaxHighlight(JSON.stringify(payload, null, 2)) +
+          "</div>"
+        );
+      });
+    }
+  </script>
+
+</body>
+</html>

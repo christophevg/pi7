@@ -40,6 +40,5 @@ api = flask_restful.Api(server)
 api.representations = { 'application/json': output_json }
 
 import pi7.web
-import pi7.integration
 import pi7.reservation
 import pi7.salesorder

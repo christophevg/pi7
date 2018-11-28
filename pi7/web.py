@@ -3,15 +3,16 @@ import requests
 import uuid
 import json
 
-from flask         import request, render_template
+from flask         import request, render_template, send_from_directory
 from flask_restful import Resource
 
-from pi7             import server, api
-from pi7.integration import url
+from pi7    import server, api
+from pi7.mq import broker
 
 @server.route("/")
-def render_home():
-  return render_template("home.html")
+@server.route("/<string:page>.html")
+def render_home(page="home"):
+  return render_template(page + ".html")
 
 class WebSalesOrderRequest(Resource):
   def post(self):
@@ -23,13 +24,9 @@ class WebSalesOrderRequest(Resource):
     }
     logging.info("     assigned processId {0}".format(event["processId"]))
     logging.info("     publishing sales order request event")
-    requests.post(url("/api/integration/request/salesorder"), json=event)
+    broker.publish("salesorder/request", json.dumps(event))
 
 api.add_resource(
   WebSalesOrderRequest,
   "/api/web/salesorder/request"
 )
-
-@server.route("/backend")
-def render_store():
-  return render_template("backend.html")

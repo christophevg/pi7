@@ -21,6 +21,7 @@ class Storable(object):
     self.object     = {}
     self.historic   = historic
     if guid: self.load()
+    self.persisting = False
 
   def __getitem__(self, key):
     return self.object[key]
@@ -40,6 +41,7 @@ class Storable(object):
     return self
 
   def persist(self):
+    self.persisting = True
     if self.historic:
       if not "history" in self.object:
         self.on_initial_history()
@@ -50,6 +52,7 @@ class Storable(object):
       }}, upsert=True)
     self.log("persisted {0}".format(self.guid))
     self.when_persisted()
+    self.persisting = False
     return self
 
   def in_context_of(self, processId, load=True):
@@ -73,7 +76,7 @@ class Storable(object):
       self.object[key] = update[key]
     update["time"] = int(time.time())
     self.object["history"].append(update)
-    if persist: self.persist()
+    if persist and not self.persisting: self.persist()
 
   def on_initial_history(self):
     pass

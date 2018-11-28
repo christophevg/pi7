@@ -1,11 +1,12 @@
 import logging
+import json
 
 from flask           import request
 from flask_restful   import Resource
 
-from pi7             import api
-from pi7.store       import Storable
-from pi7.integration import publish
+from pi7       import api
+from pi7.store import Storable
+from pi7.mq    import broker, subscribe, publish
 
 class SalesOrder(Storable):
   def unmarshall(self, salesorder):
@@ -30,7 +31,7 @@ class SalesOrder(Storable):
     if not "customer" in self: return
     if [r for r in self["reservations"] if r["status"] == "unconfirmed"]: return
     self.log("all reservations are confirmed")
-    publish("/api/integration/confirm/salesorder", self)
+    publish("salesorder/confirm", self)
 
   def confirm(self, reservation):
     # handle the confirmation of a reservation, replacing a placeholder or
@@ -56,24 +57,14 @@ api.add_resource(
 
 # event consumers
 
-class SalesOrderRequest(Resource):
-  def post(self):
-    event = request.get_json()
-    logging.info("sales order: received sales order request")
-    SalesOrder().in_context_of(event["processId"]).make(event["salesorder"])
+def handle_sales_order_request(event):
+  logging.info("salesorder: received sales order request")
+  SalesOrder().in_context_of(event["processId"]).make(event["salesorder"])
 
-api.add_resource(
-  SalesOrderRequest,
-  "/api/salesorder/request/salesorder"
-)
+subscribe("salesorder/request", handle_sales_order_request)
 
-class SalesOrderReservationConfirmation(Resource):
-  def post(self):
-    event = request.get_json()
-    logging.info("sales order: received reservation confirmation")
-    SalesOrder().in_context_of(event["processId"]).confirm(event["reservation"])
+def handle_reservation_confirmation(event):
+  logging.info("sales order: received reservation confirmation")
+  SalesOrder().in_context_of(event["processId"]).confirm(event["reservation"])
 
-api.add_resource(
-  SalesOrderReservationConfirmation,
-  "/api/salesorder/confirm/reservation"
-)
+subscribe("reservation/confirm", handle_reservation_confirmation)

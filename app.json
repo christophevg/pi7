@@ -4,6 +4,7 @@
   "website": "https://github.com/christophevg/pi7",
   "addons" : [
     "mongolab",
+    "cloudmqtt"
   ],
   "success_url": "/"
 }
