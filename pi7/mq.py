@@ -47,8 +47,8 @@ class MQInfo(Resource):
 api.add_resource(MQInfo, "/api/mq/connection")
 
 
-def on_connect(client, clientId, flags, rc):
-  logging.debug("connected with result code " + str(rc) + " as " + clientId)
+def on_connect(client, client_id, flags, rc):
+  logging.debug("connected with result code {0}".format(rc))
 
 def on_disconnect(client, userData, rc):
   logging.error("MQTT broker disconnected")
