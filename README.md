@@ -4,7 +4,7 @@
 
 ## Install && Run
 
-For educational simplicity, all components are hosted within the same application. When run locally, you need to instantiate two workers, to allow the app to talk to itself.
+For educational simplicity, all components are hosted within the same application.
 
 ```bash
 $ git clone https://github.com/christophevg/pi7
@@ -12,7 +12,7 @@ $ cd pi7
 $ virtualenv venv
 $ . venv/bin/activate
 (venv) $ pip install -r requirements.txt
-(venv) $ gunicorn --workers=2 pi7:server
+(venv) $ gunicorn pi7:server
 ```
 
 Alternatively, simply ...
